@@ -7,19 +7,23 @@ const { handleUserDuringOTP } = require("./user.controller");
 const User = db.user;
 const otpGenerator = require('otp-generator')
 const nodemailer = require('nodemailer')
+var jwt = require("jsonwebtoken");
 
 //otp generation + user creation if necessary (return a notifier on the state)
 exports.requestOTP = (req, res) => {
-    const email = req.body.email
-    // const email = "xpartyapp@gmail.com"
+    // const email = req.body.email
+    const email = "xpartyapp@gmail.com"
     //handle new / existing user setup & retrieve user object
     handleUserDuringOTP(email)
     .then(user => generateOTP(user))    //generate OTP & add to DB
-    .then(newUser => sendOTPEmail(email, newUser.otp))  //send email with the OTP
-    // Add & return a short lived OTP jwt?
-    .then(() => {
-        console.log("OTP CREATED", email)
-        res.status(200).send({message: "OTP Requested, mail sent"})
+    .then(user => sendOTPEmail(user))  //send email with the OTP
+    .then(user => generateOTPToken(user))
+    .then(token => {
+        console.log("OTP CREATED, token granted", token)
+        res.status(200).send({
+            message: "OTP Requested, mail sent, token passed",
+            token: token
+        })
     })
     .catch((error)=> {
         console.error(error)
@@ -27,6 +31,23 @@ exports.requestOTP = (req, res) => {
         return res.status(500).send({message: "Internal Server Error Occured"})
     })
     
+}
+
+async function generateOTPToken(user) {
+    try {
+        var token = jwt.sign({
+            userID: user._id,
+            keyAuthorized: false,
+            otpAuthorized: true
+        }, config.jwtSecret, {
+            expiresIn: 600  //short lived 10 minute token
+        })
+
+        return token
+
+    } catch (err) {
+        throw err
+    }
 }
 
 async function generateOTP(user) {
@@ -90,13 +111,13 @@ const transporter = nodemailer.createTransport({
 })
 
 //async function that handles nodemailer email departure
-async function sendOTPEmail(email, otp) {
+async function sendOTPEmail(user) {
     return new Promise((resolve, reject)=> {
         const mailData = {
             from: gmailAddress,
-            to: email,
+            to: user.email,
             subject: otpEmailSubject,
-            text: getEmailOTPMessage(otp, email)
+            text: getEmailOTPMessage(user.otp, user.email)
         }
         
         transporter.sendMail(mailData, (error, info)=> {
@@ -104,7 +125,7 @@ async function sendOTPEmail(email, otp) {
                 console.log(error)
                 reject(false)
             }
-            resolve(true)
+            resolve(user)
         })
     })
 }
