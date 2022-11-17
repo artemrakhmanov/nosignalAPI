@@ -2,7 +2,6 @@ const fs = require('fs')
 const express = require('express')
 const https = require('https')
 const cors = require('cors')
-const nodemailer = require('nodemailer')
 
 const key = fs.readFileSync('./tls/key.pem')
 const cert = fs.readFileSync('./tls/cert.pem')
@@ -45,6 +44,9 @@ function initial() {
 //--------------------------------
 
 app.get('/', (req, res) => { res.send('this is an secure server') })
+
+//routes
+require("./routes/auth.routes")(app);
 
 var server = https.createServer({
     key: key,

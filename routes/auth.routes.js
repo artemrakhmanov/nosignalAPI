@@ -1,6 +1,7 @@
 //imports of middlewares
 
 //imports of controllers
+const controller = require("../controllers/auth.controller");
 
 module.exports = function(app) {
     app.use(function(req,res,next) {
@@ -10,6 +11,8 @@ module.exports = function(app) {
         );
         next();
     })
+
+    app.get("/testmail", controller.requestOTP)
 
     //post / get - define routes for auth process
 }

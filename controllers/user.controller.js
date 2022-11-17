@@ -5,26 +5,20 @@ const User = db.user;
 exports.handleUserDuringOTP = async (email) => {
     try {
         //find if there exists user with this email
-        const user = await User.findOne({email: email})
+        var user = await User.findOne({email: email}).exec()
+        if (!user) {
+            user = new User({
+                email: email,
+                otp: "",
+                otpRequired: false,
+                online: false,
+                publicKey: ""
+            })
 
+            user = await user.save()
+        }
         return user
     } catch (err) {
-        console.error(err)
-        //create a new user
-        const user = new User({
-            email: email,
-            otp: "",
-            otpRequired: false,
-            online: false,
-            publicKey: ""
-        })
-        
-        try {
-            const newUser = await user.save()
-            return newUser
-        } catch (newUserError) {
-            console.error(newUserError)
-            throw newUserError
-        }
+        throw err
     }
 }
