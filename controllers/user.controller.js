@@ -22,3 +22,4 @@ exports.handleUserDuringOTP = async (email) => {
         throw err
     }
 }
+

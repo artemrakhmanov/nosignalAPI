@@ -11,8 +11,8 @@ var jwt = require("jsonwebtoken");
 
 //otp generation + user creation if necessary (return a notifier on the state)
 exports.requestOTP = (req, res) => {
-    // const email = req.body.email
-    const email = "xpartyapp@gmail.com"
+    const email = req.body.email
+    
     //handle new / existing user setup & retrieve user object
     handleUserDuringOTP(email)
     .then(user => generateOTP(user))    //generate OTP & add to DB
@@ -37,6 +37,7 @@ async function generateOTPToken(user) {
     try {
         var token = jwt.sign({
             userID: user._id,
+            authorized: false,
             keyAuthorized: false,
             otpAuthorized: true
         }, config.jwtSecret, {
@@ -78,11 +79,77 @@ async function generateOTP(user) {
 
 //otp auth 
 exports.signInWithOTP = (req, res) => {
+    
+    if (!req.user) {
+        return res.status(500).send({message: "Internal Server Error Occured: user req"})
+    }
+
+    const user = req.user
+
     //test if otp is requested
+    if (!user.otpRequired) {
+        return res.status(200).send({message: "Otp was not requested.", status: false})
+    }
 
-    //compare supplied and existing otp
+    compareOTP(user, req.body.otp)
+    .then((status)=>{
+        
+        if (!status) {
+            return res.status(200).send({
+                message: "The password was not correct",
+                status: false
+            })
+        }
+        
+        generateKeyToken(user)
+        .then(token=> {
+            return res.status(200).send({token: token, status: true})
+        })
+        .catch(err=> {
+            console.error(err)
+            return res.status(500).send({message: "Internal Server Error Occured"})
+        })
+    })
+    .catch(err=>{
+        console.error(err)
+        return res.status(500).send({message: "Internal Server Error Occured"})
+    })
 
-    //return a JWT with authorized: false & short life time
+}
+
+async function compareOTP(user, otp) {
+    try {
+        const result = otp === user.otp
+        
+        if (!result) {
+            console.log("setting comparison to false")
+            return false
+        }
+        user.otpRequired = false
+        user.otp = ""
+        const newUser = await user.save()
+        return true
+    } catch (err) {
+        throw err
+    }
+}
+
+async function generateKeyToken(user) {
+    try {
+        var token = jwt.sign({
+            userID: user._id,
+            authorized: false,
+            keyAuthorized: true,
+            otpAuthorized: true
+        }, config.jwtSecret, {
+            expiresIn: 600  //short lived 10 minute token
+        })
+
+        return token
+
+    } catch (err) {
+        throw err
+    }
 }
 
 //collect public key to complete new user registration
@@ -92,6 +159,10 @@ exports.supplyPublicKey = (req, res) => {
     //populate remaining fields for the user
 
     //return a JWT with authorized: true and longer lifetime
+}
+
+exports.userAccountIsSetup = (req, res) => {
+    res.status(200).send({status: true})
 }
 
 //--------EMAILING----------

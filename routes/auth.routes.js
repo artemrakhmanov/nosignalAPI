@@ -2,6 +2,8 @@
 
 //imports of controllers
 const controller = require("../controllers/auth.controller");
+const { verifyKeyToken, verifyOTPToken } = require("../middlewares/authJWT");
+const { userAccountIsSetup, userAccountNotSetup, getUserAccount } = require("../middlewares/userAccount");
 
 module.exports = function(app) {
     app.use(function(req,res,next) {
@@ -12,7 +14,12 @@ module.exports = function(app) {
         next();
     })
 
-    app.get("/testmail", controller.requestOTP)
+    app.post("/auth/requestOTP", controller.requestOTP)
 
-    //post / get - define routes for auth process
+    app.post("/auth/signInWithOTP", [verifyOTPToken, getUserAccount], controller.signInWithOTP)
+
+    app.get("/auth/userIsSetUp", [verifyKeyToken, userAccountIsSetup], controller.userAccountIsSetup)
+
+    app.post("/auth/signInWithKey", [verifyKeyToken], controller.supplyPublicKey)
+
 }
