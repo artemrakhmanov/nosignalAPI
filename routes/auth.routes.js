@@ -1,9 +1,8 @@
 //imports of middlewares
-
-//imports of controllers
-const controller = require("../controllers/auth.controller");
 const { verifyKeyToken, verifyOTPToken } = require("../middlewares/authJWT");
 const { userAccountIsSetup, userAccountNotSetup, getUserAccount } = require("../middlewares/userAccount");
+//imports of controllers
+const controller = require("../controllers/auth.controller");
 
 module.exports = function(app) {
     app.use(function(req,res,next) {

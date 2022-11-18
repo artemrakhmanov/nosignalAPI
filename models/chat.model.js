@@ -3,15 +3,14 @@ const mongoose = require('mongoose')
 const Chat = mongoose.model(
     "Chat",
     new mongoose.Schema({
-        chatID: String,
-        userID_1: String,
-        userID_2: String,
-        encryptedChatKey_1: String,
-        encryptedChatKey_2: String,
-        publicKey_1: String,
-        publicKey_2: String,
-        tmpKeyExchange_12: String,
-        tmpKeyExchange_21: String,
+        userEmail1: String,
+        userEmail2: String,
+        userID1: String,
+        userID2: String,
+        encryptedChatKey1: String,
+        encryptedChatKey2: String,
+        publicKey1: String,
+        publicKey2: String,
         messages: [
             {
                 type: mongoose.Schema.Types.ObjectId,
