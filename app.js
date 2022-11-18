@@ -2,6 +2,7 @@ const fs = require('fs')
 const express = require('express')
 const https = require('https')
 const cors = require('cors')
+const ws = require('ws')
 
 const key = fs.readFileSync('./tls/key.pem')
 const cert = fs.readFileSync('./tls/cert.pem')
@@ -43,8 +44,6 @@ function initial() {
 
 //--------------------------------
 
-app.get('/', (req, res) => { res.send('this is an secure server') })
-
 //routes
 require("./routes/auth.routes")(app);
 
@@ -53,4 +52,20 @@ var server = https.createServer({
     cert: cert
 }, app)
 
+app.get('/', (req, res) => { res.send('this is an secure server') })
+
 server.listen(8000, () => { console.log('listening on 8000') })
+
+var wss = new ws.WebSocketServer({
+    server: server,
+    path: "/websocket"
+})
+
+wss.on('connection', function connection(ws) {
+    console.log('connection')
+    ws.on('message', function message(data) {
+        console.log("received some data ", data)
+    })
+
+    ws.send('something')
+})

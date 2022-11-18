@@ -10,10 +10,12 @@ userAccountIsSetup = (req, res, next) => {
         if (user) {
             if (user.publicKey === "") {
                 req.user = user
-                return res.status(200).send({status: "false"})
+                req.userAccountIsSetup = false
+                next()
             } else {
                 req.user = user
-                return res.status(200).send({status: "true"})
+                req.userAccountIsSetup = true
+                next()
             }
         } else {
             return res.status(400).send({message: "User not found"})
@@ -34,10 +36,12 @@ userAccountNotSetup = (req, res, next) => {
         if (user) {
             if (user.publicKey === "") {
                 req.user = user
-                return res.status(200).send({status: "false"})
+                req.userAccountIsSetup = false
+                next()
             } else {
                 req.user = user
-                return res.status(200).send({status: "true"})
+                req.userAccountIsSetup = true
+                next()
             }
                 
         } else {

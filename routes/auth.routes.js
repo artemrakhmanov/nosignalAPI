@@ -20,6 +20,6 @@ module.exports = function(app) {
 
     app.get("/auth/userIsSetUp", [verifyKeyToken, userAccountIsSetup], controller.userAccountIsSetup)
 
-    app.post("/auth/signInWithKey", [verifyKeyToken], controller.supplyPublicKey)
+    app.post("/auth/signInWithKey", [verifyKeyToken, userAccountIsSetup], controller.supplyPublicKey)
 
 }

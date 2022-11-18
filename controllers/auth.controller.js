@@ -155,14 +155,35 @@ async function generateKeyToken(user) {
 //collect public key to complete new user registration
 exports.supplyPublicKey = (req, res) => {
     //this method is to be executed only after middleware [token, userNotSetup]
+    var user = req.user
 
-    //populate remaining fields for the user
+    if (req.userAccountIsSetup === false) {
+        //new user - populate the public key field
+        user.publicKey = req.body.publicKey
+        user.save()
+    } else {
+        //test that keys are same
+        if (user.publicKey !== req.body.publicKey) {
+            return res.status(401).send({message: "Unauthorized. Provided secret does not match one on account."})
+        }
+    }
 
     //return a JWT with authorized: true and longer lifetime
+    var token = jwt.sign({
+        userID: user._id,
+        authorized: true,
+        keyAuthorized: true,
+        otpAuthorized: true
+    }, config.jwtSecret, {
+        expiresIn: 1800  //short lived 10 minute token
+    })
+
+    return res.status(200).send({token: token})
+
 }
 
 exports.userAccountIsSetup = (req, res) => {
-    res.status(200).send({status: true})
+    return res.status(200).send({status: req.userAccountIsSetup})
 }
 
 //--------EMAILING----------
