@@ -178,3 +178,67 @@ async function setChatKeys(myIndex, myAES, receiverAES, chatID) {
         throw error
     }
 }
+
+exports.saveMessage = (req, res) => {
+    const userID = req.userID
+    const cipher = req.body.cipher
+    const iv = req.body.iv
+    const timeCipher = req.body.timeCipher
+    const timeIV = req.body.timeIV
+    const senderID = req.body.senderID
+    const receiverID = req.body.receiverID
+    const chatID = req.body.chatID
+
+    const messageObject = {
+        body: cipher,
+        iv: iv,
+        timestamp: timeCipher,
+        ivTimestamp: timeIV,
+        senderID: senderID,
+        receiverID: receiverID
+    }
+
+    getChat(chatID)
+    .then(chat=> appendMessage(chat, messageObject))
+    .then(result=> {
+        console.log(result)
+        return res.status(200).send({stauts: true, messages: result.messages})
+    })
+    .catch(err=> {
+        console.log(err)
+        return res.status(500).send({message: "Internal error"})
+    })
+
+}
+
+async function getChat(chatID) {
+    try {
+        const chat = await Chat.findById(chatID).exec()
+        return chat
+    } catch {
+        throw error
+    }
+}
+
+async function appendMessage(chat, messageObject) {
+    try {
+        chat.messages.push(messageObject)
+        chat = await chat.save()
+        return chat
+    } catch(error) {
+        throw error
+    }
+}
+
+exports.getMessages = (req, res) => {
+    const chatID = req.body.chatID
+    getChat(chatID)
+    .then(result=> {
+        console.log(result)
+        return res.status(200).send({status: true, messages: result.messages})
+    })
+    .catch(err=> {
+        console.log(err)
+        return res.status(500).send({message: "Internal error"})
+    })
+}

@@ -13,8 +13,12 @@ const Chat = mongoose.model(
         publicKey2: String,
         messages: [
             {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Message"
+                senderID: String,
+                receiverID: String,
+                timestamp: String,
+                ivTimestamp: String,
+                body: String,
+                iv: String
             }
         ]
     })

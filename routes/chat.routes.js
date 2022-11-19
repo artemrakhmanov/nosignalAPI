@@ -23,6 +23,9 @@ module.exports = function(app) {
 
     app.post("/chat/initialiseChat", [verifyToken], controller.setChatKeys)
 
+    app.post("/chat/sendMessage", [verifyToken], controller.saveMessage)
+    app.post("/chat/getMessages", [verifyToken], controller.getMessages)
+
     // app.post("/auth/requestOTP", controller.requestOTP)
 
     // app.post("/auth/signInWithOTP", [verifyOTPToken, getUserAccount], controller.signInWithOTP)
